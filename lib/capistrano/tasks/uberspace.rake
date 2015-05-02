@@ -11,6 +11,10 @@ end
 namespace :uberspace do
   desc "Prepare your Uberspace to play with your ruby version automagically"
   task :install do
+    # Set a random, ephemeral port, and hope it's free.
+    # Could be refactored to actually check whether it is.
+    set :unicorn_port, -> { rand(61000-32768+1)+32768 }
+
     invoke "uberspace:ruby"
     invoke "uberspace:gemrc"
     invoke "uberspace:bundler"
@@ -21,6 +25,13 @@ namespace :uberspace do
 
     invoke "setup"
     invoke "uberspace:setup_database_and_config"
+  end
+
+  task :variables do
+    on roles(:web) do |host|
+      set :home, -> { "/home/#{host.user}" }
+      set :deploy_to, -> { "/var/www/virtual/#{host.user}/rails/#{fetch :application}" }
+    end
   end
 
   desc "Setup uberspace's MySQL server"
@@ -81,13 +92,6 @@ namespace :uberspace do
     end
   end
 
-  task :variables do
-    on roles(:web) do |host|
-      set :home, -> { "/home/#{host.user}" }
-      set :unicorn_port, -> { rand(61000-32768+1)+32768 } # random ephemeral port
-      set :deploy_to, -> { "/var/www/virtual/#{host.user}/rails/#{fetch :application}" }
-    end
-  end
 
   desc "Setup "
   task :setup_daemon do
@@ -97,7 +101,7 @@ namespace :uberspace do
 export HOME=#{fetch :home}
 source $HOME/.bash_profile
 cd #{fetch :deploy_to}/current
-exec bundle exec rails s unicorn start -p #{fetch :unicorn_port} -e production 2>&1
+exec bundle exec rails s unicorn -p #{fetch :unicorn_port} -e production 2>&1
       EOF
 
     log_script = <<-EOF
@@ -121,7 +125,7 @@ exec multilog t ./main
   task :setup_reverse_proxy do
       htaccess = <<-EOF
 RewriteEngine On
-RewriteRule ^(.*)$ http://localhost:#{fetch :passenger_port}/$1 [P]
+RewriteRule ^(.*)$ http://localhost:#{fetch :unicorn_port}/$1 [P]
       EOF
       htaccess_stream = StringIO.new(htaccess)
       path = fetch(:domain) ? "/var/www/virtual/#{fetch :user}/#{fetch :domain}" : "#{fetch :home}/html"
@@ -160,9 +164,3 @@ END
   end
 end
 
-namespace :deploy do
-  before :starting, 'uberspace:variables'
-  after :starting, 'uberspace:start'
-  before :restart, 'uberspace:variables'
-  after :published, 'uberspace:restart'
-end

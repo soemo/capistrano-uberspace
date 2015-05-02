@@ -1,3 +1,2 @@
-require 'capistrano/secrets_yml'
-
-load File.expand_path('../tasks/base.rake', __FILE__)
+load File.expand_path('../tasks/uberspace.rake', __FILE__)
+load File.expand_path('../tasks/capistrano_hooks.rake', __FILE__)
