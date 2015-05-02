@@ -7,26 +7,21 @@ def get_ruby_version
   end
 end
 
+task :setup do
+  # Set a random, ephemeral port, and hope it's free.
+  # Could be refactored to actually check whether it is.
+  set :unicorn_port, -> { rand(61000-32768+1)+32768 }
+
+  invoke "uberspace:ruby"
+  invoke "uberspace:gemrc"
+  invoke "uberspace:bundler"
+  invoke "uberspace:setup_svscan"
+  invoke "uberspace:setup_daemon"
+  invoke "uberspace:setup_reverse_proxy"
+  invoke "uberspace:setup_database_and_config"
+end
 
 namespace :uberspace do
-  desc "Prepare your Uberspace to play with your ruby version automagically"
-  task :install do
-    # Set a random, ephemeral port, and hope it's free.
-    # Could be refactored to actually check whether it is.
-    set :unicorn_port, -> { rand(61000-32768+1)+32768 }
-
-    invoke "uberspace:ruby"
-    invoke "uberspace:gemrc"
-    invoke "uberspace:bundler"
-    invoke "uberspace:variables"
-    invoke "uberspace:setup_svscan"
-    invoke "uberspace:setup_daemon"
-    invoke "uberspace:setup_reverse_proxy"
-
-    invoke "setup"
-    invoke "uberspace:setup_database_and_config"
-  end
-
   task :variables do
     on roles(:web) do |host|
       set :home, -> { "/home/#{host.user}" }
