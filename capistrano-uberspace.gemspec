@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'capistrano/uberspace/version'
 
 Gem::Specification.new do |gem|
-  gem.authors       = ["Martin Meyerhoff"]
+  gem.authors       = ["Jan Schulz-Hofen", "Martin Meyerhoff"]
   gem.license       = 'MIT'
   gem.email         = ["mamhoff@gmail.com"]
   gem.description   = %q{Capistrano 3 tasks to deploy to Uberspace}
@@ -25,7 +25,6 @@ Gem::Specification.new do |gem|
 
   # dependencies for passenger on Uberspace
   gem.add_dependency 'unicorn-rails'
-  gem.add_dependency 'daemon_controller', '>=1.0.0'
 
   # dependency for mysql on Uberspace
   gem.add_dependency 'mysql2',            '>=0.3.11'
