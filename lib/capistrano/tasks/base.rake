@@ -161,20 +161,8 @@ END
 end
 
 namespace :deploy do
-  task :start do
-    invoke 'uberspace:start'
-  end
-
-  task :restart do
-    invoke 'uberspace:restart'
-  end
-
-  task :stop do
-    invoke 'uberspace:stop'
-  end
-
   before :starting, 'uberspace:variables'
-  after :starting, :start
+  after :starting, 'uberspace:start'
   before :restart, 'uberspace:variables'
   after :published, 'uberspace:restart'
 end
