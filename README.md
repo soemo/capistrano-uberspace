@@ -1,48 +1,42 @@
-# Uberspacify
+# Capistrano::Uberspace recipes for Capistrano 3
 
-Uberspacify helps you deploy a Ruby on Rails app on Uberspace, a popular shared hosting provider.
+Capistrano::Uberspace helps you deploy a Ruby on Rails app on Uberspace, a popular shared hosting provider. It's based on (Uberspacify)[https://github.com/yeah/uberspacify]
 
-All the magic is built into a couple nice Capistrano scripts. Uberspacify will create an environment for your app, install Passenger, run it in standalone mode, monitor it using Daemontools, and configure Apache to reverse-proxy to it. Uberspacify will also find out your Uberspace MySQL password and create databases as well as a `database.yml`
+All the magic is built into a couple nice Capistrano scripts. The recipes will configure your path to use a recent ruby version as installed by the friendly Uberspace admins, run your app using the unicorn web server, monitor it using Daemontools, and configure Apache to reverse-proxy to it. Uberspacify will also find out your Uberspace MySQL password and create databases as well as a `database.yml`
 
 ## Installation
 
 Add this line to your application's `Gemfile`:
 
 ```ruby
-gem 'uberspacify'
+gem 'capistrano-uberspace', github: 'mamhoff/capistrano-uberspace', branch: 'master', group: :development
 ```
 
 And then execute:
 
     $ bundle
-    
-This should install uberspacify as well as Capistrano and some other gems for you.
+
+This should install Capistrano::Uberspace as well as Capistrano and some other gems for you.
 
 Now execute the following to get a `Capfile` and a `deploy.rb`:
 
-    $ capify .
-    
-If you are using Rails' asset pipeline, add this line to your `Capfile`:
+    $ cap install
 
-```ruby
-load 'deploy/assets'
-```
-    
-Now, you need to add a few lines regarding your Uberspace to your `config/deploy.rb`. If you haven't used Capistrano previously, it is safe to overwrite it and copy, paste & adapt the following:
+Now, you need to add a few lines to some configuration files. If you haven't used Capistrano previously, it is safe to overwrite it and copy, paste & adapt the following:
 
+`Capfile`
 ```ruby
 # include uberspacify base recipes
-require 'uberspacify/base'
+require 'capistrano/uberspace'
+```
 
-# comment this if you don't use MySQL
-require 'uberspacify/mysql' 
-
+`config/deploy/{stage}.rb`
+```ruby
 # the Uberspace server you are on
-server 'phoenix.uberspace.de', :web, :app, :db, :primary => true
+server 'phoenix.uberspace.de', user: 'ubernaut', roles: %w{app db web}, my_property: :my_value
+```
 
-# your Uberspace username
-set :user, 'ubernaut'
-
+`config/deploy.rb`
 # a name for your app, [a-z0-9] should be safe, will be used for your gemset,
 # databases, directories, etc.
 set :application, 'dummyapp'
@@ -62,35 +56,32 @@ set :repository, 'https://github.com/yeah/dummyapp.git'
 # listen on. This is fine, since only Apache will use it. Your app will always
 # be available on port 80 and 443 from the outside. However, if you'd like to
 # set this yourself, go ahead.
-# set :passenger_port, 55555
+# set :unicorn_port, 55555
 
-# By default, Ruby Enterprise Edition 1.8.7 is used for Uberspace. If you
-# prefer Ruby 1.9 or any other version, please refer to the RVM documentation
-# at https://rvm.io/integration/capistrano/ and set this variable.
-# set :rvm_ruby_string, '1.9.3@rails-dummyapp'
+# By default, Capistrano::Uberspace uses the ruby versions installed on your uberspace that matches your `.ruby-version` file.
 ```
 
 Done. That was the hard part. It's easy from here on out. Next, add all new/modified files to version control. If you use Git, the following will do:
 
     $ git add . ; git commit -m 'uberspacify my app!' ; git push
-    
+
 And here comes the fun part - get it all up and running on Uberspace! These commands should teleport your app to the Uberspace (execute them one by one and keep an eye on the output):
 
-    $ bundle exec cap deploy:setup
-    $ bundle exec cap deploy:migrations
-    
+    $ bundle exec cap {stage} setup
+    $ bundle exec cap {stage} deploy
+
 (Be sure to have your public key set up on your Uberspace account already.)
-    
-This will do a whole lot of things, so don't get nervous, it takes some time. After Capistrano is done, **please wait some more**. When Passenger starts for the first time, it will actually compile an nginx server. Don't worry though, subsequent starts will be fast.
+
+This will do a whole lot of things, so don't get nervous.
 
 Now, **after some time**, your app should be available on your Uberspace URI.
 
 Should you ever need to stop/start/restart your app, you can do so using Capistrano's standard:
 
     $ bundle exec cap deploy:{stop|start|restart}
-    
+
 That's it folks. Have fun.
-    
+
 ## License
 
 MIT; Copyright (c) 2012 Jan Schulz-Hofen
