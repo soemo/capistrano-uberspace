@@ -88,7 +88,7 @@ namespace :uberspace do
   end
 
 
-  desc "Setup "
+  desc "Setup daemontools"
   task :setup_daemon do
 
     daemon_script = <<-EOF
