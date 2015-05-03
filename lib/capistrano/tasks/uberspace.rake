@@ -22,7 +22,7 @@ task :setup do
 end
 
 namespace :uberspace do
-  task :variables do
+  task :defaults do
     on roles(:web) do |host|
       set :home, -> { "/home/#{host.user}" }
       set :deploy_to, -> { "/var/www/virtual/#{host.user}/rails/#{fetch :application}" }

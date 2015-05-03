@@ -1,7 +1,10 @@
-before :setup, 'uberspace:variables'
+namespace :load do
+  task :defaults do
+    invoke 'uberspace:defaults'
+  end
+end
 
 namespace :deploy do
-  before :check, 'uberspace:variables'
   after :published, 'uberspace:restart'
 end
 
