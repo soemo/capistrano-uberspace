@@ -1,10 +1,5 @@
-namespace :load do
-  task :defaults do
-    invoke 'uberspace:defaults'
-  end
-end
-
 namespace :deploy do
+  before :check, 'uberspace:defaults'
   after :published, 'uberspace:restart'
 end
 
