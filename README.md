@@ -37,6 +37,7 @@ server 'phoenix.uberspace.de', user: 'ubernaut', roles: %w{app db web}, my_prope
 ```
 
 `config/deploy.rb`
+```
 # a name for your app, [a-z0-9] should be safe, will be used for your gemset,
 # databases, directories, etc.
 set :application, 'dummyapp'
