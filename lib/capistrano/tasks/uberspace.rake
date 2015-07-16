@@ -43,17 +43,16 @@ namespace :uberspace do
         'host' => 'localhost'
       }
 
-      my_cnf.match(/^user=(\w+)/)
+      my_cnf.scan(/^user=(\w+)/)
       config[env]['username'] = $1
 
-      my_cnf.match(/^password=(\w+)/)
+      my_cnf.scan(/^password=(\w+)/)
       config[env]['password'] = $1
 
-      my_cnf.match(/^port=(\d+)/)
+      my_cnf.scan(/^port=(\d+)/)
       config[env]['port'] = $1.to_i
 
       execute "mysql -e 'CREATE DATABASE IF NOT EXISTS #{config[env]['database']} CHARACTER SET utf8 COLLATE utf8_general_ci;'"
-
 
       execute "mkdir -p #{fetch :deploy_to}/shared/config"
       database_yml = StringIO.new(config.to_yaml)
