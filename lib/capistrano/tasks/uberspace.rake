@@ -95,7 +95,7 @@ namespace :uberspace do
 export HOME=#{fetch :home}
 source $HOME/.bash_profile
 cd #{fetch :deploy_to}/current
-exec bundle exec rails s unicorn -p #{fetch :unicorn_port} -e production 2>&1
+bundle exec unicorn --port #{fetch :unicorn_port} -E production 2>&1
       EOF
 
     log_script = <<-EOF
