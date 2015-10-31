@@ -22,10 +22,10 @@ task :setup do
 end
 
 namespace :uberspace do
+  # invoked in capistrano_hooks.rake before :check and :starting
   task :defaults do
     on roles(:web) do |host|
       set :home, "/home/#{host.user}"
-      set :deploy_to, "/home/#{host.user}/rails/#{fetch :application}"
     end
   end
 

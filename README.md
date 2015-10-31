@@ -42,6 +42,9 @@ server 'phoenix.uberspace.de', user: 'ubernaut', roles: %w{app db web}, my_prope
 # databases, directories, etc.
 set :application, 'dummyapp'
 
+# You have to set where to store the code, the default /var/www/my_app_name won't work on uberspace
+set :deploy_to, '/home/uberspace_username/rails/my_app_name'
+
 # the repo where your code is hosted
 set :scm, :git
 set :repository, 'https://github.com/yeah/dummyapp.git'
