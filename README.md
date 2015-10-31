@@ -26,14 +26,29 @@ Now, you need to add a few lines to some configuration files. If you haven't use
 
 `Capfile`
 ```ruby
-# include uberspacify base recipes
+# Load DSL and set up stages
+require 'capistrano/setup'
+
+# Include default deployment tasks
+require 'capistrano/deploy'
+
+# include rails tasks
+require 'capistrano/rails'
+
+# include uberspace tasks
 require 'capistrano/uberspace'
+
+# ...
+
+# Load custom tasks from `lib/capistrano/tasks` if you have any defined
+Dir.glob('lib/capistrano/tasks/*.rake').each { |r| import r }
+
 ```
 
 `config/deploy/{stage}.rb`
 ```ruby
 # the Uberspace server you are on
-server 'phoenix.uberspace.de', user: 'ubernaut', roles: %w{app db web}, my_property: :my_value
+server 'phoenix.uberspace.de', user: 'ubernaut', roles: %w{app db web}
 ```
 
 `config/deploy.rb`
