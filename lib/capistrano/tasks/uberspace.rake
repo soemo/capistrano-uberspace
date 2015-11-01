@@ -22,10 +22,10 @@ task :setup do
 end
 
 namespace :uberspace do
+  # invoked in capistrano_hooks.rake before :check and :starting
   task :defaults do
     on roles(:web) do |host|
       set :home, "/home/#{host.user}"
-      set :deploy_to, "/var/www/virtual/#{host.user}/rails/#{fetch :application}"
     end
   end
 
@@ -43,17 +43,16 @@ namespace :uberspace do
         'host' => 'localhost'
       }
 
-      my_cnf.match(/^user=(\w+)/)
+      my_cnf.scan(/^user=(\w+)/)
       config[env]['username'] = $1
 
-      my_cnf.match(/^password=(\w+)/)
+      my_cnf.scan(/^password=(\w+)/)
       config[env]['password'] = $1
 
-      my_cnf.match(/^port=(\d+)/)
+      my_cnf.scan(/^port=(\d+)/)
       config[env]['port'] = $1.to_i
 
       execute "mysql -e 'CREATE DATABASE IF NOT EXISTS #{config[env]['database']} CHARACTER SET utf8 COLLATE utf8_general_ci;'"
-
 
       execute "mkdir -p #{fetch :deploy_to}/shared/config"
       database_yml = StringIO.new(config.to_yaml)
@@ -96,7 +95,7 @@ namespace :uberspace do
 export HOME=#{fetch :home}
 source $HOME/.bash_profile
 cd #{fetch :deploy_to}/current
-exec bundle exec rails s unicorn -p #{fetch :unicorn_port} -e production 2>&1
+bundle exec unicorn --port #{fetch :unicorn_port} -E production 2>&1
       EOF
 
     log_script = <<-EOF

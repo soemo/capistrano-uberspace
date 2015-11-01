@@ -26,24 +26,43 @@ Now, you need to add a few lines to some configuration files. If you haven't use
 
 `Capfile`
 ```ruby
-# include uberspacify base recipes
+# Load DSL and set up stages
+require 'capistrano/setup'
+
+# Include default deployment tasks
+require 'capistrano/deploy'
+
+# include rails tasks
+require 'capistrano/rails'
+
+# include uberspace tasks
 require 'capistrano/uberspace'
+
+# ...
+
+# Load custom tasks from `lib/capistrano/tasks` if you have any defined
+Dir.glob('lib/capistrano/tasks/*.rake').each { |r| import r }
+
 ```
 
 `config/deploy/{stage}.rb`
 ```ruby
 # the Uberspace server you are on
-server 'phoenix.uberspace.de', user: 'ubernaut', roles: %w{app db web}, my_property: :my_value
+server 'phoenix.uberspace.de', user: 'ubernaut', roles: %w{app db web}
 ```
 
-`config/deploy.rb`
+In `config/deploy.rb` you need to these parameters:
+`application`, `deploy_to` and `repository`
 ```
 # a name for your app, [a-z0-9] should be safe, will be used for your gemset,
 # databases, directories, etc.
 set :application, 'dummyapp'
 
-# the repo where your code is hosted
-set :scm, :git
+# You have to set where to store the code
+# the default /var/www/my_app_name won't work on uberspace
+set :deploy_to, '/home/uberspace_username/rails/my_app_name'
+
+# the repo where your code is hosted (possibly in your uberspace home as well)
 set :repository, 'https://github.com/yeah/dummyapp.git'
 
 # optional stuff from here
@@ -53,7 +72,7 @@ set :repository, 'https://github.com/yeah/dummyapp.git'
 # configure it here.
 # set :domain, 'www.dummyapp.com'
 
-# By default, uberspacify will generate a random port number for Passenger to
+# By default, capistrano-uberspace will generate a random port number for Passenger to
 # listen on. This is fine, since only Apache will use it. Your app will always
 # be available on port 80 and 443 from the outside. However, if you'd like to
 # set this yourself, go ahead.
