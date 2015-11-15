@@ -10,9 +10,6 @@ end
 task :setup do
   # Set a random, ephemeral port, and hope it's free.
   # Could be refactored to actually check whether it is.
-  set :passenger_port, -> { rand(61000-32768+1)+32768 }
-
-  set :passenger_max_pool_size, 3
 
   invoke "uberspace:ruby"
   invoke "uberspace:gemrc"
