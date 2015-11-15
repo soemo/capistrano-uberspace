@@ -10,7 +10,9 @@ end
 task :setup do
   # Set a random, ephemeral port, and hope it's free.
   # Could be refactored to actually check whether it is.
-  set :unicorn_port, -> { rand(61000-32768+1)+32768 }
+  set :passenger_port, -> { rand(61000-32768+1)+32768 }
+
+  set(:passenger_max_pool_size) { 3 }
 
   invoke "uberspace:ruby"
   invoke "uberspace:gemrc"
@@ -34,25 +36,27 @@ namespace :uberspace do
     on roles(:web) do |host|
       my_cnf = capture('cat ~/.my.cnf')
       config = {}
-      env = (fetch :stage).to_s
+      db_suffix = fetch(:database_name_suffix) ? "#{fetch :database_name_suffix}" : "#{fetch :application}"
+      %w(development production test).each do |env|
 
-      config[env] = {
-        'adapter' => 'mysql2',
-        'encoding' => 'utf8',
-        'database' => "#{host.user}_rails_#{fetch :application}_#{env}",
-        'host' => 'localhost'
-      }
+        config[env] = {
+            'adapter' => 'mysql2',
+            'encoding' => 'utf8',
+            'database' => "#{host.user}_rails_#{db_suffix}_#{env}",
+            'host' => 'localhost'
+        }
 
-      my_cnf.scan(/^user=(\w+)/)
-      config[env]['username'] = $1
+        my_cnf.scan(/^user=(\w+)/)
+        config[env]['username'] = $1
 
-      my_cnf.scan(/^password=(\w+)/)
-      config[env]['password'] = $1
+        my_cnf.scan(/^password=(\w+)/)
+        config[env]['password'] = $1
 
-      my_cnf.scan(/^port=(\d+)/)
-      config[env]['port'] = $1.to_i
+        my_cnf.scan(/^port=(\d+)/)
+        config[env]['port'] = $1.to_i
 
-      execute "mysql -e 'CREATE DATABASE IF NOT EXISTS #{config[env]['database']} CHARACTER SET utf8 COLLATE utf8_general_ci;'"
+        execute "mysql -e 'CREATE DATABASE IF NOT EXISTS #{config[env]['database']} CHARACTER SET utf8 COLLATE utf8_general_ci;'"
+      end
 
       execute "mkdir -p #{fetch :deploy_to}/shared/config"
       database_yml = StringIO.new(config.to_yaml)
@@ -95,7 +99,7 @@ namespace :uberspace do
 export HOME=#{fetch :home}
 source $HOME/.bash_profile
 cd #{fetch :deploy_to}/current
-bundle exec unicorn --port #{fetch :unicorn_port} -E production 2>&1
+exec bundle exec passenger start -p #{fetch :passenger_port} -e production --max-pool-size #{fetch :passenger_max_pool_size} 2>&1
       EOF
 
     log_script = <<-EOF
@@ -120,7 +124,7 @@ exec multilog t ./main
       htaccess = <<-EOF
 RewriteEngine On
 RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_FILENAME} !-f
-RewriteRule ^(.*)$ http://localhost:#{fetch :unicorn_port}/$1 [P]
+RewriteRule ^(.*)$ http://localhost:#{fetch :passenger_port}/$1 [P]
       EOF
       htaccess_stream = StringIO.new(htaccess)
       path = fetch(:domain) ? "/var/www/virtual/#{fetch :user}/#{fetch :domain}" : "#{fetch :home}/html"
