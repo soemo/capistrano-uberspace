@@ -16,7 +16,6 @@ task :setup do
 
   invoke "uberspace:ruby"
   invoke "uberspace:gemrc"
-  invoke "uberspace:bundler"
   invoke "uberspace:setup_svscan"
   invoke "uberspace:setup_daemon"
   invoke "uberspace:setup_reverse_proxy"
@@ -152,13 +151,6 @@ END
   task :gemrc do
     on roles(:web) do
       execute 'echo "gem: --user-install --no-rdoc --no-ri" > ~/.gemrc'
-    end
-  end
-
-  task :bundler do
-    on roles(:web) do
-      execute 'gem install bundler'
-      execute 'bundle config path ~/.gem'
     end
   end
 end
