@@ -10,7 +10,6 @@ end
 task :setup do
   # Set a random, ephemeral port, and hope it's free.
   # Could be refactored to actually check whether it is.
-  set :unicorn_port, -> { rand(61000-32768+1)+32768 }
 
   invoke "uberspace:ruby"
   invoke "uberspace:gemrc"
@@ -96,7 +95,7 @@ namespace :uberspace do
 export HOME=#{fetch :home}
 source $HOME/.bash_profile
 cd #{fetch :deploy_to}/current
-bundle exec unicorn --port #{fetch :unicorn_port} -E production 2>&1
+exec bundle exec passenger start -p #{fetch :passenger_port} -e production --max-pool-size #{fetch :passenger_max_pool_size} 2>&1
       EOF
 
     log_script = <<-EOF
@@ -121,7 +120,7 @@ exec multilog t ./main
       htaccess = <<-EOF
 RewriteEngine On
 RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_FILENAME} !-f
-RewriteRule ^(.*)$ http://localhost:#{fetch :unicorn_port}/$1 [P]
+RewriteRule ^(.*)$ http://localhost:#{fetch :passenger_port}/$1 [P]
       EOF
       htaccess_stream = StringIO.new(htaccess)
       path = fetch(:domain) ? "/var/www/virtual/#{fetch :user}/#{fetch :domain}" : "#{fetch :home}/html"
