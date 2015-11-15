@@ -145,13 +145,6 @@ RewriteRule ^(.+) $1.gz [L]
   ExpiresDefault "access plus 1 year"
 </FilesMatch>
 
-# maintenance mode
-ErrorDocument 503 /system/maintenance.html
-RewriteCond %{REQUEST_URI} !.(css|gif|jpg|png)$
-RewriteCond #{fetch(:deploy_to)}/current/public/system/maintenance.html -f
-RewriteCond %{SCRIPT_FILENAME} !maintenance.html
-RewriteRule ^.*$ - [redirect=503,last]
-
 # let rails handle everything else
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^(.*)$ http://localhost:#{fetch :passenger_port}/$1 [P]
