@@ -130,7 +130,7 @@ RewriteRule ^(.+) $1.gz [L]
 <FilesMatch \.css\.gz$>
   ForceType text/css
   Header set Content-Encoding gzip
-</lesMatch>
+</FilesMatch>
 
 <FilesMatch \.js\.gz$>
   ForceType text/javascript
