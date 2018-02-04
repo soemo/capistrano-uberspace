@@ -95,7 +95,7 @@ namespace :uberspace do
 export HOME=#{fetch :home}
 source $HOME/.bash_profile
 cd #{fetch :deploy_to}/current
-exec bundle exec passenger start -p #{fetch :passenger_port} -e production --max-pool-size #{fetch :passenger_max_pool_size} 2>&1
+. .env && exec bundle exec passenger start -p #{fetch :passenger_port} -e production --max-pool-size #{fetch :passenger_max_pool_size} 2>&1
       EOF
 
     log_script = <<-EOF
