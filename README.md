@@ -2,14 +2,21 @@
 
 Capistrano::Uberspace helps you deploy a Ruby on Rails app on Uberspace, a popular shared hosting provider. It's based on (Uberspacify)[https://github.com/yeah/uberspacify]
 
-All the magic is built into a couple nice Capistrano scripts. The recipes will configure your path to use a recent ruby version as installed by the friendly Uberspace admins, run your app using the unicorn web server, monitor it using Daemontools, and configure Apache to reverse-proxy to it. Uberspacify will also find out your Uberspace MySQL password and create databases as well as a `database.yml`
+All the magic is built into a couple nice Capistrano scripts.
+
+The scripts will:
+
+- Add a database that corresponds to your app's name
+- Generate a `database.yml` configuration for use on your server
+- Generate a `.htaccess` file
+- configure `supervisord` so that it monitors your rails server
 
 ## Installation
 
 Add this line to your application's `Gemfile`:
 
 ```ruby
-gem 'capistrano-uberspace', github: 'mamhoff/capistrano-uberspace', branch: 'master', group: :development
+gem 'capistrano-uberspace', github: 'soemo/capistrano-uberspace', branch: 'master', group: :development
 ```
 
 And then execute:
@@ -22,10 +29,11 @@ Now execute the following to get a `Capfile` and a `deploy.rb`:
 
     $ cap install
 
-Now, you need to add a few lines to some configuration files. If you haven't used Capistrano previously, it is safe to overwrite it and copy, paste & adapt the following:
+Now, you need to add a few lines to some configuration files. If you haven't used Capistrano previously, it is safe to overwrite the `Capfile` and copy, paste & adapt the following:
 
-`Capfile`
 ```ruby
+# Capfile
+
 # Load DSL and set up stages
 require 'capistrano/setup'
 
@@ -49,34 +57,28 @@ Dir.glob('lib/capistrano/tasks/*.rake').each { |r| import r }
 ```ruby
 # the Uberspace server you are on
 server 'phoenix.uberspace.de', user: 'ubernaut', roles: %w{app db web}
+set :deploy_to, "/home/ubernaut/#{fetch :application}"
 ```
 
 In `config/deploy.rb` you need to these parameters:
-`application`, `deploy_to` and `repository`
+
+ - `application`
+ - `repository`
+ -
+
 ```
 # a name for your app, [a-z0-9] should be safe, will be used for your gemset,
 # databases, directories, etc.
 set :application, 'dummyapp'
 
-# You have to set where to store the code
-# the default /var/www/my_app_name won't work on uberspace
-set :deploy_to, '/home/uberspace_username/rails/my_app_name'
-
 # the repo where your code is hosted (possibly in your uberspace home as well)
 set :repository, 'https://github.com/yeah/dummyapp.git'
 
-# optional stuff from here
+# Your database configuration as well as your secrets will stay across deploys.
+append :linked_files, "config/database.yml", "config/master.key"
 
-# By default, your app will be available in the root of your Uberspace. If you
-# have your own domain and its DNS records pointed to your Uberspace, you can
-# configure it here.
-# set :domain, 'www.dummyapp.com'
-
-# By default, capistrano-uberspace will generate a random port number for Passenger to
-# listen on. This is fine, since only Apache will use it. Your app will always
-# be available on port 80 and 443 from the outside. However, if you'd like to
-# set this yourself, go ahead.
-# set :unicorn_port, 55555
+# Default value for linked_dirs is []
+append :linked_dirs, "log", "tmp/pids", "tmp/cache", "tmp/sockets", "public/system", 'bundle'
 
 # By default, Capistrano::Uberspace uses the ruby versions installed on your uberspace that matches your `.ruby-version` file.
 ```
@@ -87,7 +89,7 @@ Done. That was the hard part. It's easy from here on out. Next, add all new/modi
 
 And here comes the fun part - get it all up and running on Uberspace! These commands should teleport your app to the Uberspace (execute them one by one and keep an eye on the output):
 
-    $ bundle exec cap {stage} setup
+    $ bundle exec cap {stage} uberspace:setup
     $ bundle exec cap {stage} deploy
 
 (Be sure to have your public key set up on your Uberspace account already.)
