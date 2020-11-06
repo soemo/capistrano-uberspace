@@ -7,7 +7,7 @@ namespace :uberspace do
   end
 
   desc "Setup a Uberspace account for serving Rails"
-  task setup: [:setup_supervisord, :setup_reverse_proxy, :setup_database_and_config]
+  task setup: [:setup_supervisord, :setup_database_and_config]
 
   desc "Start the Rails Server"
   task :start do
@@ -63,33 +63,27 @@ namespace :uberspace do
 
   desc "Setup supervisord"
   task setup_supervisord: :defaults do
-    app_config = <<-EOF
+    supervisord_config = <<-EOF
 [program:#{fetch :application}]
-command=. .env && exec bundle exec passenger start -p #{fetch :passenger_port} -e production --max-pool-size #{fetch :passenger_max_pool_size} 2>&1
-directory=#{fetch :deploy_to}/current
+command=/home/#{host.user}/bin/run-#{fetch :application}-passenger
 autostart=yes
 autorestart=yes
     EOF
 
-    app_config_stream = StringIO.new(app_config)
+    supervisord_config_stream = StringIO.new(supervisord_config)
     on roles(:web) do
-      upload! app_config_stream, "#{fetch :home}/etc/services.d/#{fetch :application}.ini"
+      upload! supervisord_config_stream, "#{fetch :home}/etc/services.d/#{fetch :application}.ini"
     end
-  end
 
-  task setup_reverse_proxy: :defaults do
-    on roles(:web) do |host|
-      htaccess = <<-EOF
-DirectoryIndex disabled
-RewriteEngine On
-RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_FILENAME} !-f
-RewriteRule ^(.*)$ http://#{host.user}.local.uberspace.de:#{fetch :passenger_port}/$1 [P]
-      EOF
-      htaccess_stream = StringIO.new(htaccess)
-      path = "/var/www/virtual/#{host.user}/html"
-      execute "mkdir -p #{path}"
-      upload! htaccess_stream, "#{path}/.htaccess"
-      execute "chmod +r #{path}/.htaccess"
+    run_config = <<-EOF
+#!/bin/bash
+cd /var/www/virtual/so#{host.user}/#{fetch :application}/current
+. .env && bin/bundle exec passenger start -p #{fetch :passenger_port} -e production --max-pool-size #{fetch :passenger_max_pool_size} 2>&1
+    EOF
+
+    run_config_stream = StringIO.new(run_config)
+    on roles(:web) do
+      upload! run_config_stream, "#{fetch :home}/bin/run-#{fetch :application}-passenger"
     end
   end
 end
