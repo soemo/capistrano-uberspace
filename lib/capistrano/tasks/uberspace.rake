@@ -65,7 +65,7 @@ namespace :uberspace do
   task setup_supervisord: :defaults do
     supervisord_config = <<-EOF
 [program:#{fetch :application}]
-command=/home/#{host.user}/bin/run-#{fetch :application}-passenger
+command=/home/#{fetch :user}/bin/run-#{fetch :application}-passenger
 autostart=yes
 autorestart=yes
     EOF
@@ -77,7 +77,7 @@ autorestart=yes
 
     run_config = <<-EOF
 #!/bin/bash
-cd /var/www/virtual/so#{host.user}/#{fetch :application}/current
+cd /var/www/virtual/#{fetch :user}/#{fetch :application}/current
 . .env && bin/bundle exec passenger start -p #{fetch :passenger_port} -e production --max-pool-size #{fetch :passenger_max_pool_size} 2>&1
     EOF
 
