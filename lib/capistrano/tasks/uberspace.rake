@@ -78,7 +78,7 @@ autorestart=yes
     run_config = <<-EOF
 #!/bin/bash
 cd /var/www/virtual/#{fetch :user}/#{fetch :application}/current
-. .env && bin/bundle exec passenger start -p #{fetch :passenger_port} -e production --max-pool-size #{fetch :passenger_max_pool_size} 2>&1
+. .env && bin/bundle exec passenger start -p #{fetch :passenger_port} -e production --spawn-method direct --disable-security-update-check --max-pool-size #{fetch :passenger_max_pool_size} 2>&1
     EOF
 
     run_config_stream = StringIO.new(run_config)
