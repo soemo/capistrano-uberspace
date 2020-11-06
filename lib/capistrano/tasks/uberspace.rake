@@ -9,24 +9,11 @@ namespace :uberspace do
   desc "Setup a Uberspace account for serving Rails"
   task setup: [:setup_supervisord, :setup_database_and_config]
 
-  desc "Start the Rails Server"
-  task :start do
-    on roles(:web) do
-      execute "supervisorctl start #{fetch :application}"
-    end
-  end
-
-  desc "Stop the Rails Server"
-  task :stop do
-    on roles(:web) do
-      execute "supervisorctl stop #{fetch :application}"
-    end
-  end
-
-  desc "Restart the Rails server"
+  desc "Restart the passenger server"
   task :restart do
     on roles(:web) do
-      execute "supervisorctl restart #{fetch :application}"
+      execute "cd /var/www/virtual/#{fetch :user}/#{fetch :application}/current && bin/bundle exec passenger stop -p #{fetch :passenger_port}"
+      # new start through supervisorctl
     end
   end
 
@@ -81,6 +68,7 @@ cd /var/www/virtual/#{fetch :user}/#{fetch :application}/current
 . .env && bin/bundle exec passenger start -p #{fetch :passenger_port} -e production --spawn-method direct --disable-security-update-check --max-pool-size #{fetch :passenger_max_pool_size} 2>&1
     EOF
 
+    # todo make file executable
     run_config_stream = StringIO.new(run_config)
     on roles(:web) do
       upload! run_config_stream, "#{fetch :home}/bin/run-#{fetch :application}-passenger"
