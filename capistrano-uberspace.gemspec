@@ -20,7 +20,7 @@ Gem::Specification.new do |gem|
 
   # dependencies for capistrano
   gem.add_dependency 'capistrano', '~> 3.1'
-  gem.add_dependency 'capistrano-bundler', '~> 1.1'
+  gem.add_dependency 'capistrano-bundler', '>= 1.1', '< 3'
   gem.add_dependency 'capistrano-secrets-yml', '~> 1.0.0'
 
   # dependencies for passenger on Uberspace
