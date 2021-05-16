@@ -33,9 +33,9 @@ namespace :uberspace do
           'host' => 'localhost'
       }
 
-      config[env]['username'] = my_cnf.scan(/^user=(.*)\r?$/)[0][0]
+      config[env]['username'] = my_cnf.scan(/^user = (.*)\r?$/)[0][0]
 
-      config[env]['password'] = my_cnf.scan(/^password=(.*)\r?$/)[0][0]
+      config[env]['password'] = my_cnf.scan(/^password = (.*)\r?$/)[0][0]
 
       config[env]['port'] = 3306
 
@@ -44,7 +44,7 @@ namespace :uberspace do
       execute "mkdir -p #{fetch :deploy_to}/shared/config"
       database_yml = StringIO.new(config.to_yaml)
       upload! database_yml, "#{fetch :deploy_to}/shared/config/database.yml"
-      upload! 'config/master.key', "#{fetch :deploy_to}/shared/config/master.key"
+      # upload! 'config/master.key', "#{fetch :deploy_to}/shared/config/master.key"
     end
   end
 
